@@ -47,20 +47,30 @@ io.on("connection", (socket) => {
     socket.on(
         "createGame",
         (categories: string[], maxScore: number, autoAdvance: boolean) => {
-            const gameRoomId = `game/${generateGameId()}`;
+            if (usernames[socket.id] === "Glizzard") {
+                socket.emit("usernameError", "Username is not set");
+            } else {
+                const gameRoomId = `game/${generateGameId()}`;
 
-            games[gameRoomId] = {
-                categories,
-                maxScore,
-                autoAdvance,
-                scores: {},
-                questionIds: [],
-                inGame: null,
-            };
+                games[gameRoomId] = {
+                    categories,
+                    maxScore,
+                    autoAdvance,
+                    scores: {},
+                    questionIds: [],
+                    inGame: null,
+                };
 
-            socket.emit("gameCreated", gameRoomId);
+                socket.emit("gameCreated", gameRoomId);
+            }
         },
     );
+
+    socket.on("checkUsername", () => {
+        if (usernames[socket.id] === "Glizzard") {
+            socket.emit("usernameError", "Username is not set");
+        }
+    });
 
     socket.on("joinGame", (gameId: string) => {
         const gameRoomId = `game/${gameId}`;
