@@ -2,7 +2,7 @@
     "name": "brainteasers-server",
     "version": "1.0.0",
     "private": true,
-    "description": "The Socket.io server for Brainteasers",
+    "description": "The server for Brainteasers",
     "main": "index.js",
     "type": "module",
     "scripts": {
