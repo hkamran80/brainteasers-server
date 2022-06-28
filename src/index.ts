@@ -27,6 +27,7 @@ const games: {
         scores: { [socketId: string]: number };
         inGame: {
             current: QA;
+            lockQuestion: boolean;
             playerAnswers: { [socketId: string]: string };
         } | null;
     };
@@ -78,13 +79,6 @@ io.on("connection", (socket) => {
                 ]),
             );
 
-            console.debug(
-                games[gameRoomId].categories,
-                games[gameRoomId].maxScore,
-                games[gameRoomId].autoAdvance,
-                scoreObject,
-            );
-
             io.in(gameRoomId).emit(
                 "joinSuccessful",
                 games[gameRoomId].categories,
@@ -100,8 +94,27 @@ io.on("connection", (socket) => {
 
         if (Object.keys(games).indexOf(gameRoomId) !== -1) {
             const qa = await pickQA(games[gameRoomId].categories);
-            games[gameRoomId].inGame = { current: qa, playerAnswers: {} };
-            io.in(gameRoomId).emit("question", qa);
+
+            if (
+                games[gameRoomId].inGame &&
+                !games[gameRoomId].inGame!.lockQuestion
+            ) {
+                games[gameRoomId].inGame = {
+                    current: qa,
+                    lockQuestion: true,
+                    playerAnswers: {},
+                };
+
+                io.in(gameRoomId).emit("question", qa);
+            } else if (games[gameRoomId].inGame === null) {
+                games[gameRoomId].inGame = {
+                    current: qa,
+                    lockQuestion: true,
+                    playerAnswers: {},
+                };
+
+                io.in(gameRoomId).emit("question", qa);
+            }
         } else {
             console.debug("Game not found");
             socket.emit("gameError", "Game not found");
@@ -178,6 +191,8 @@ io.on("connection", (socket) => {
                                         };
                                     }),
                                 );
+
+                                games[gameRoomId].inGame!.lockQuestion = false;
                             }
                         } else {
                             io.in(gameRoomId).emit(
@@ -195,6 +210,8 @@ io.on("connection", (socket) => {
                                     },
                                 ),
                             );
+
+                            games[gameRoomId].inGame!.lockQuestion = false;
                         }
                     },
                 );
