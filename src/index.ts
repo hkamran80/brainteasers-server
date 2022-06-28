@@ -23,6 +23,7 @@ const games: {
     [gameRoomId: string]: {
         categories: string[];
         maxScore: number;
+        autoAdvance: boolean;
         scores: { [socketId: string]: number };
         inGame: {
             current: QA;
@@ -41,12 +42,22 @@ io.on("connection", (socket) => {
         usernames[socket.id] = newUsername;
     });
 
-    socket.on("createGame", (categories: string[], maxScore: number) => {
-        const gameRoomId = `game/${generateGameId()}`;
+    socket.on(
+        "createGame",
+        (categories: string[], maxScore: number, autoAdvance: boolean) => {
+            const gameRoomId = `game/${generateGameId()}`;
 
-        games[gameRoomId] = { categories, maxScore, scores: {}, inGame: null };
-        socket.emit("gameCreated", gameRoomId);
-    });
+            games[gameRoomId] = {
+                categories,
+                maxScore,
+                autoAdvance,
+                scores: {},
+                inGame: null,
+            };
+
+            socket.emit("gameCreated", gameRoomId);
+        },
+    );
 
     socket.on("joinGame", (gameId: string) => {
         const gameRoomId = `game/${gameId}`;
@@ -67,10 +78,18 @@ io.on("connection", (socket) => {
                 ]),
             );
 
+            console.debug(
+                games[gameRoomId].categories,
+                games[gameRoomId].maxScore,
+                games[gameRoomId].autoAdvance,
+                scoreObject,
+            );
+
             io.in(gameRoomId).emit(
                 "joinSuccessful",
                 games[gameRoomId].categories,
                 games[gameRoomId].maxScore,
+                games[gameRoomId].autoAdvance,
                 scoreObject,
             );
         }
