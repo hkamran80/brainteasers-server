@@ -10,10 +10,11 @@ export const pickQA = async (categories: string[]): Promise<QA> => {
         )
     ).json()) as TriviaAPIResponse;
 
-    const { category, question, correctAnswer, incorrectAnswers } =
+    const { category, id, question, correctAnswer, incorrectAnswers } =
         triviaQuestion[0];
 
     return {
+        id,
         category,
         question,
         answers: shuffle([correctAnswer, ...incorrectAnswers]),

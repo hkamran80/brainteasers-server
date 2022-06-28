@@ -1,4 +1,5 @@
 export type QA = {
+    id: string;
     category: string;
     question: string;
     answers: string[];

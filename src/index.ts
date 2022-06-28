@@ -25,6 +25,7 @@ const games: {
         maxScore: number;
         autoAdvance: boolean;
         scores: { [socketId: string]: number };
+        questionIds: string[];
         inGame: {
             current: QA;
             lockQuestion: boolean;
@@ -53,6 +54,7 @@ io.on("connection", (socket) => {
                 maxScore,
                 autoAdvance,
                 scores: {},
+                questionIds: [],
                 inGame: null,
             };
 
@@ -93,7 +95,12 @@ io.on("connection", (socket) => {
         const gameRoomId = `game/${gameId}`;
 
         if (Object.keys(games).indexOf(gameRoomId) !== -1) {
-            const qa = await pickQA(games[gameRoomId].categories);
+            let qa = await pickQA(games[gameRoomId].categories);
+            while (games[gameRoomId].questionIds.indexOf(qa.id) !== -1) {
+                qa = await pickQA(games[gameRoomId].categories);
+            }
+
+            games[gameRoomId].questionIds.push(qa.id);
 
             if (
                 games[gameRoomId].inGame &&
@@ -105,7 +112,11 @@ io.on("connection", (socket) => {
                     playerAnswers: {},
                 };
 
-                io.in(gameRoomId).emit("question", qa);
+                io.in(gameRoomId).emit("question", {
+                    category: qa.category,
+                    question: qa.question,
+                    answers: qa.answers,
+                });
             } else if (games[gameRoomId].inGame === null) {
                 games[gameRoomId].inGame = {
                     current: qa,
@@ -113,7 +124,11 @@ io.on("connection", (socket) => {
                     playerAnswers: {},
                 };
 
-                io.in(gameRoomId).emit("question", qa);
+                io.in(gameRoomId).emit("question", {
+                    category: qa.category,
+                    question: qa.question,
+                    answers: qa.answers,
+                });
             }
         } else {
             console.debug("Game not found");
