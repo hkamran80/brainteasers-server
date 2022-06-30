@@ -6,3 +6,4 @@ node_modules/*
 **/node_modules/*
 **/.gitignore
 **/.dccache
+src/index.ext.ts

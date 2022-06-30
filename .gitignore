@@ -131,3 +131,4 @@ dist
 
 .dccache
 .DS_Store
+src/index.ext.ts
